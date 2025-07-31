@@ -22,7 +22,15 @@ import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 
 export default function LandingPage() {
-  const { user, hasPermission } = useAuth()
+  const { user, hasPermission, isAuthenticated, isLoading } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -44,23 +52,42 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            {hasPermission("access_admin_panel") ? (
+            {isAuthenticated && hasPermission("access_admin_panel") ? (
               <Link href="/admin">
                 <Button variant="ghost" className="text-slate-600 hover:text-slate-900">
                   Admin Panel
                 </Button>
               </Link>
             ) : null}
-            <Link href="/chat">
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">
-                Launch Chat
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              hasPermission("access_chat") ? (
+                <Link href="/chat">
+                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">
+                    Launch Chat
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              ) : null
+            ) : (
+              <Link href="/login">
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">
+                  Sign In
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            )}
             {user && (
               <Badge variant="outline" className="border-blue-200 text-blue-700">
                 {user.name}
               </Badge>
+            )}
+            {isAuthenticated && (
+              <Button variant="ghost" onClick={() => {
+                const { logout } = useAuth()
+                logout()
+              }}>
+                Logout
+              </Button>
             )}
           </div>
         </div>

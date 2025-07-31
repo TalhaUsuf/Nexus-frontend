@@ -196,6 +196,29 @@ app.post('/api/auth/callback', async (req, res) => {
   }
 });
 
+// Verify token endpoint
+app.get('/api/auth/verify', authenticateToken, (req, res) => {
+  try {
+    const user = db.users.get(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        name: `${user.firstName} ${user.lastName}`,
+        role: user.role,
+        status: user.status,
+        organizationId: user.organizationId
+      }
+    });
+  } catch (error) {
+    console.error('Token verification error:', error);
+    res.status(500).json({ error: 'Token verification failed' });
+  }
+});
 // User login
 app.post('/api/auth/login', async (req, res) => {
   try {

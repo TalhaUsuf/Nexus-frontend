@@ -23,10 +23,29 @@ import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 
 export default function AdminPanel() {
-  const { hasPermission, user } = useAuth()
+  const { hasPermission, user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
   const [pendingApprovals, setPendingApprovals] = useState([])
   const [isLoading, setIsLoading] = useState(false)
 
+  // Redirect if not authenticated or no admin permission
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || !hasPermission("access_admin_panel"))) {
+      router.push("/login")
+    }
+  }, [isAuthenticated, hasPermission, isLoading, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated || !hasPermission("access_admin_panel")) {
+    return null // Will redirect via useEffect
+  }
   // Fetch bot approvals from API
   const fetchBotApprovals = async () => {
     try {

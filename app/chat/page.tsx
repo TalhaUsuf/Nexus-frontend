@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -30,9 +31,27 @@ interface Conversation {
 }
 
 export default function ChatPage() {
-  const { user, hasPermission } = useAuth()
+  const { user, hasPermission, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
 
-  // All users can access chat, but we can show different features based on role
+  // Redirect if not authenticated or no chat permission
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || !hasPermission("access_chat"))) {
+      router.push("/login")
+    }
+  }, [isAuthenticated, hasPermission, isLoading, router])
+
+  if (isLoading) {
+    return (
+      <div className="h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated || !hasPermission("access_chat")) {
+    return null // Will redirect via useEffect
+  }
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
