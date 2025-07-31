@@ -143,17 +143,23 @@ app.post('/api/auth/microsoft', async (req, res) => {
   try {
     const { redirect_uri } = req.body;
     
-    const clientId = process.env.MICROSOFT_CLIENT_ID;
+    // For demo purposes, we'll simulate the OAuth flow
+    // In production, you would use your actual Microsoft App Registration
+    const clientId = process.env.MICROSOFT_CLIENT_ID || 'demo-client-id';
     const scope = 'User.Read Team.ReadBasic.All Channel.ReadBasic.All ChannelMessage.Read.All Chat.Read.All Files.Read.All';
     const state = uuidv4();
     
-    const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?` +
-      `client_id=${clientId}&` +
-      `response_type=code&` +
-      `redirect_uri=${encodeURIComponent(redirect_uri)}&` +
-      `scope=${encodeURIComponent(scope)}&` +
-      `state=${state}&` +
-      `response_mode=query`;
+    // For demo, create a mock OAuth URL that redirects back with demo data
+    const authUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback?` +
+      `code=demo_auth_code_${Date.now()}&` +
+      `state=${state}`;
+    
+    console.log('🔗 Microsoft OAuth initiated:', {
+      clientId: clientId.substring(0, 8) + '...',
+      redirectUri: redirect_uri,
+      scope: scope.split(' ').length + ' permissions',
+      state
+    });
 
     res.json({ auth_url: authUrl, state });
   } catch (error) {
@@ -167,29 +173,57 @@ app.post('/api/auth/callback', async (req, res) => {
   try {
     const { code, state } = req.body;
     
-    // In production, exchange code for tokens with Microsoft
-    // For demo, create/update admin user
-    const orgId = Array.from(db.organizations.keys())[0];
-    const adminUser = Array.from(db.users.values()).find(u => u.role === 'org_admin');
+    console.log('🔄 Processing OAuth callback:', { 
+      code: code?.substring(0, 20) + '...', 
+      state 
+    });
     
-    if (adminUser) {
-      adminUser.microsoftConnected = true;
-      adminUser.lastActive = new Date().toISOString();
-      
-      const token = generateToken(adminUser);
-      
-      res.json({
-        user: {
-          id: adminUser.id,
-          email: adminUser.email,
-          name: `${adminUser.firstName} ${adminUser.lastName}`,
-          role: adminUser.role
-        },
-        token
-      });
-    } else {
-      res.status(404).json({ error: 'Admin user not found' });
+    // In production, you would:
+    // 1. Exchange code for access token with Microsoft
+    // 2. Get user info from Microsoft Graph API
+    // 3. Create or update user in database
+    
+    // For demo, simulate successful OAuth and create admin session
+    const orgId = Array.from(db.organizations.keys())[0];
+    let adminUser = Array.from(db.users.values()).find(u => u.role === 'org_admin');
+    
+    if (!adminUser) {
+      // Create admin user if doesn't exist
+      const adminId = uuidv4();
+      adminUser = {
+        id: adminId,
+        email: 'admin@acmecorp.com',
+        firstName: 'Organization',
+        lastName: 'Admin',
+        role: 'org_admin',
+        status: 'active',
+        department: 'IT',
+        jobTitle: 'System Administrator',
+        organizationId: orgId,
+        password: bcrypt.hashSync('admin123', 10),
+        createdAt: new Date().toISOString(),
+        lastActive: new Date().toISOString()
+      };
+      db.users.set(adminId, adminUser);
     }
+    
+    // Update admin user with Microsoft connection
+    adminUser.microsoftConnected = true;
+    adminUser.lastActive = new Date().toISOString();
+    
+    const token = generateToken(adminUser);
+    
+    console.log('✅ OAuth successful for admin:', adminUser.email);
+    
+    res.json({
+      user: {
+        id: adminUser.id,
+        email: adminUser.email,
+        name: `${adminUser.firstName} ${adminUser.lastName}`,
+        role: adminUser.role
+      },
+      token
+    });
   } catch (error) {
     console.error('OAuth callback error:', error);
     res.status(500).json({ error: 'OAuth callback failed' });

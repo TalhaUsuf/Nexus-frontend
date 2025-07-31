@@ -8,24 +8,46 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Shield, CheckCircle, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-context"
 
 export default function OAuthPage() {
-  const [step, setStep] = useState(1)
   const [isConnecting, setIsConnecting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const { login } = useAuth()
 
   const handleConnect = async () => {
     setIsConnecting(true)
-    // Simulate OAuth flow
-    setTimeout(() => {
-      setStep(2)
+    setError(null)
+
+    try {
+      // Step 1: Get Microsoft OAuth URL from backend
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/microsoft`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          redirect_uri: `${window.location.origin}/auth/callback`
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to initiate Microsoft OAuth')
+      }
+
+      const data = await response.json()
+      
+      // Step 2: Redirect to Microsoft OAuth
+      window.location.href = data.auth_url
+      
+    } catch (err) {
+      console.error('OAuth initiation error:', err)
+      setError('Failed to connect with Microsoft Teams. Please try again.')
       setIsConnecting(false)
-    }, 2000)
+    }
   }
 
-  const handleComplete = () => {
-    router.push("/admin")
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -47,7 +69,6 @@ export default function OAuthPage() {
             <p className="text-slate-600">Securely connect your Microsoft Teams organization to Nexus</p>
           </div>
 
-          {step === 1 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -59,6 +80,13 @@ export default function OAuthPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
@@ -143,42 +171,6 @@ export default function OAuthPage() {
                 </Button>
               </CardContent>
             </Card>
-          )}
-
-          {step === 2 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-green-600">
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  Connection Successful!
-                </CardTitle>
-                <CardDescription>Your organization has been successfully connected to Nexus</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <Alert className="border-green-200 bg-green-50">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-800">
-                    Nexus now has access to your Microsoft Teams organization. You can now manage bot permissions and
-                    start data ingestion.
-                  </AlertDescription>
-                </Alert>
-
-                <div className="space-y-4">
-                  <h3 className="font-semibold">Next Steps:</h3>
-                  <ul className="space-y-2 text-sm text-slate-600">
-                    <li>• Configure which teams and channels Nexus can access</li>
-                    <li>• Set up approval workflows for new bot invitations</li>
-                    <li>• Begin data ingestion from your Teams conversations</li>
-                    <li>• Enable end-user chat access to the knowledge base</li>
-                  </ul>
-                </div>
-
-                <Button onClick={handleComplete} className="w-full" size="lg">
-                  Go to Admin Panel
-                </Button>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>

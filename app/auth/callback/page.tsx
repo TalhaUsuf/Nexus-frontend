@@ -22,7 +22,7 @@ export default function AuthCallbackPage() {
 
       if (error) {
         setStatus("error")
-        setMessage("Authentication was cancelled or failed.")
+        setMessage(`Authentication failed: ${error}`)
         return
       }
 
@@ -33,8 +33,10 @@ export default function AuthCallbackPage() {
       }
 
       try {
+        setMessage("Exchanging authorization code...")
+        
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}${process.env.NEXT_PUBLIC_AUTH_CALLBACK_ENDPOINT}`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/callback`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -56,18 +58,16 @@ export default function AuthCallbackPage() {
 
           // Redirect based on user role
           setTimeout(() => {
-            if (user.role === "end_user") {
-              router.push("/chat")
-            } else {
-              router.push("/admin")
-            }
+            router.push("/admin")
           }, 2000)
         } else {
-          throw new Error("Authentication failed")
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || "Authentication failed")
         }
       } catch (error) {
+        console.error("OAuth callback error:", error)
         setStatus("error")
-        setMessage("Failed to complete authentication. Please try again.")
+        setMessage(`Failed to complete authentication: ${error.message}`)
       }
     }
 
