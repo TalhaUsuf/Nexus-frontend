@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const { v4: uuidv4 } = require('uuid');
+const db = require('./db');
 require('dotenv').config();
 
 const app = express();
@@ -15,17 +16,6 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
-
-// In-memory database (replace with real database in production)
-const db = {
-  organizations: new Map(),
-  users: new Map(),
-  invitations: new Map(),
-  botRequests: new Map(),
-  conversations: new Map(),
-  messages: new Map(),
-  references: new Map()
-};
 
 // Email transporter setup
 const emailTransporter = nodemailer.createTransporter({
@@ -98,33 +88,33 @@ const sendEmail = async (to, subject, html) => {
 };
 
 // Initialize sample data
-const initializeData = () => {
+const initializeData = async () => {
   // Create sample organization
   const orgId = uuidv4();
-  db.organizations.set(orgId, {
+  await db.createOrganization({
     id: orgId,
     name: 'Acme Corp',
     domain: 'acmecorp.com',
-    microsoftTenantId: 'sample-tenant-id',
-    createdAt: new Date().toISOString()
+    microsoft_tenant_id: 'sample-tenant-id',
+    created_at: new Date().toISOString()
   });
 
   // Create sample admin user
   const adminId = uuidv4();
   const hashedPassword = bcrypt.hashSync('admin123', 10);
-  db.users.set(adminId, {
+  await db.createUser({
     id: adminId,
     email: 'admin@acmecorp.com',
-    firstName: 'Admin',
-    lastName: 'User',
+    first_name: 'Admin',
+    last_name: 'User',
     role: 'org_admin',
     status: 'active',
     department: 'IT',
-    jobTitle: 'System Administrator',
-    organizationId: orgId,
+    job_title: 'System Administrator',
+    organization_id: orgId,
     password: hashedPassword,
-    createdAt: new Date().toISOString(),
-    lastActive: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    last_active: new Date().toISOString()
   });
 
   console.log('Sample data initialized');
@@ -184,32 +174,33 @@ app.post('/api/auth/callback', async (req, res) => {
     // 3. Create or update user in database
     
     // For demo, simulate successful OAuth and create admin session
-    const orgId = Array.from(db.organizations.keys())[0];
-    let adminUser = Array.from(db.users.values()).find(u => u.role === 'org_admin');
+    let adminUser = await db.getUserByEmail('admin@acmecorp.com');
     
     if (!adminUser) {
       // Create admin user if doesn't exist
       const adminId = uuidv4();
-      adminUser = {
+      const orgId = uuidv4();
+      adminUser = await db.createUser({
         id: adminId,
         email: 'admin@acmecorp.com',
-        firstName: 'Organization',
-        lastName: 'Admin',
+        first_name: 'Organization',
+        last_name: 'Admin',
         role: 'org_admin',
         status: 'active',
         department: 'IT',
-        jobTitle: 'System Administrator',
-        organizationId: orgId,
+        job_title: 'System Administrator',
+        organization_id: orgId,
         password: bcrypt.hashSync('admin123', 10),
-        createdAt: new Date().toISOString(),
-        lastActive: new Date().toISOString()
-      };
-      db.users.set(adminId, adminUser);
+        created_at: new Date().toISOString(),
+        last_active: new Date().toISOString()
+      });
     }
     
     // Update admin user with Microsoft connection
-    adminUser.microsoftConnected = true;
-    adminUser.lastActive = new Date().toISOString();
+    await db.updateUser(adminUser.id, {
+      microsoft_connected: true,
+      last_active: new Date().toISOString()
+    });
     
     const token = generateToken(adminUser);
     
@@ -219,7 +210,7 @@ app.post('/api/auth/callback', async (req, res) => {
       user: {
         id: adminUser.id,
         email: adminUser.email,
-        name: `${adminUser.firstName} ${adminUser.lastName}`,
+        name: `${adminUser.first_name} ${adminUser.last_name}`,
         role: adminUser.role
       },
       token
@@ -233,7 +224,7 @@ app.post('/api/auth/callback', async (req, res) => {
 // Verify token endpoint
 app.get('/api/auth/verify', authenticateToken, (req, res) => {
   try {
-    const user = db.users.get(req.user.id);
+    const user = await db.getUserById(req.user.id);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -242,10 +233,10 @@ app.get('/api/auth/verify', authenticateToken, (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        name: `${user.firstName} ${user.lastName}`,
+        name: `${user.first_name} ${user.last_name}`,
         role: user.role,
         status: user.status,
-        organizationId: user.organizationId
+        organization_id: user.organization_id
       }
     });
   } catch (error) {
