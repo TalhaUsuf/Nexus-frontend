@@ -164,3 +164,4 @@ cached_files/
 ingested_data/
 analytics_data/
 exported_reports/
+.env
