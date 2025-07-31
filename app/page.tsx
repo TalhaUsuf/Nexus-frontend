@@ -59,23 +59,21 @@ export default function LandingPage() {
                 </Button>
               </Link>
             ) : null}
-            {isAuthenticated ? (
-              hasPermission("access_chat") ? (
-                <Link href="/chat">
-                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">
-                    Launch Chat
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-              ) : null
-            ) : (
+            {isAuthenticated && hasPermission("access_chat") ? (
+              <Link href="/chat">
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">
+                  Launch Chat
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            ) : !isAuthenticated ? (
               <Link href="/login">
                 <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">
                   Sign In
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
-            )}
+            ) : null}
             {user && (
               <Badge variant="outline" className="border-blue-200 text-blue-700">
                 {user.name}
