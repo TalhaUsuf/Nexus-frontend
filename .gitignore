@@ -1,0 +1,166 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE_BIN/
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Next.js Dependencies and Build Output
+/node_modules
+/.next/
+/out/
+/build
+/dist
+*.tsbuildinfo
+next-env.d.ts
+
+# Package Manager Files and Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+.npm/
+.yarn/
+.pnpm-store/
+
+# Environment Variables
+.env*
+!.env.example
+.envrc
+
+# Vercel
+.vercel
+
+# Python Backend Files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+.virtualenv/
+Scripts/
+pyvenv.cfg
+
+# Python Testing and Coverage
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Database Files
+*.db
+*.sqlite
+*.sqlite3
+nexus.db
+database.db
+
+# Docker Volumes and Data
+postgres_data/
+redis_data/
+docker-volumes/
+
+# Log Files
+*.log
+logs/
+log/
+
+# Microsoft Teams Integration Cache
+teams_cache/
+ms_graph_cache/
+oauth_tokens/
+
+# Temporary and Cache Files
+tmp/
+temp/
+.tmp/
+*.tmp
+.cache/
+.eslintcache
+.stylelintcache
+
+# Archive Files
+*.zip
+*.tar.gz
+*.rar
+*.7z
+"Nexus Platform.zip"
+
+# Security Files
+secrets/
+private/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+oauth_config.json
+microsoft_tokens.json
+
+# Testing and Build Tools
+coverage/
+.nyc_output/
+.turbo/
+.parcel-cache/
+storybook-static/
+
+# Cloud and Deployment
+.azure/
+.sentryclirc
+.sentry-native/
+
+# Project Specific - Nexus Platform
+uploads/
+user_data/
+cached_files/
+ingested_data/
+analytics_data/
+exported_reports/
