@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import dynamic from 'next/dynamic'
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
@@ -10,6 +11,12 @@ import { DayButton, DayPicker, getDefaultClassNames } from 'react-day-picker'
 
 import { cn } from '@/lib/utils'
 import { Button, buttonVariants } from '@/components/ui/button'
+
+// Prevent SSR for this component to avoid timer-related errors
+const DynamicDayPicker = dynamic(
+  () => import('react-day-picker').then((mod) => ({ default: mod.DayPicker })),
+  { ssr: false }
+)
 
 function Calendar({
   className,
@@ -26,7 +33,7 @@ function Calendar({
   const defaultClassNames = getDefaultClassNames()
 
   return (
-    <DayPicker
+    <DynamicDayPicker
       showOutsideDays={showOutsideDays}
       className={cn(
         'bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent',
