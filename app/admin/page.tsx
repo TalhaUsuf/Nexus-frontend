@@ -26,7 +26,7 @@ export default function AdminPanel() {
   const { hasPermission, user, isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
   const [pendingApprovals, setPendingApprovals] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
 
   // Redirect if not authenticated or no admin permission
   useEffect(() => {
@@ -87,7 +87,7 @@ export default function AdminPanel() {
   // Approve/reject bot request
   const handleBotApproval = async (requestId: string, approved: boolean, reason?: string) => {
     try {
-      setIsLoading(true)
+      setIsProcessing(true)
       const token = localStorage.getItem("nexus_token")
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}${process.env.NEXT_PUBLIC_BOT_APPROVALS_ENDPOINT}/${requestId}/approve`, {
         method: "POST",
@@ -105,7 +105,7 @@ export default function AdminPanel() {
     } catch (error) {
       console.error("Failed to process bot approval:", error)
     } finally {
-      setIsLoading(false)
+      setIsProcessing(false)
     }
   }
 
@@ -317,7 +317,7 @@ export default function AdminPanel() {
                                 size="sm"
                                 onClick={() => handleApprove(request.id)}
                                 className="bg-green-600 hover:bg-green-700"
-                                disabled={isLoading}
+                                disabled={isProcessing}
                               >
                                 <CheckCircle className="w-4 h-4 mr-1" />
                                 Approve
@@ -326,7 +326,7 @@ export default function AdminPanel() {
                                 size="sm" 
                                 variant="outline" 
                                 onClick={() => handleReject(request.id)}
-                                disabled={isLoading}
+                                disabled={isProcessing}
                               >
                                 <XCircle className="w-4 h-4 mr-1" />
                                 Reject
