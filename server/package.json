@@ -1,0 +1,31 @@
+{
+  "name": "nexus-backend",
+  "version": "1.0.0",
+  "description": "Nexus B2B Platform Backend API",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "nodemailer": "^6.9.7",
+    "uuid": "^9.0.1",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "keywords": [
+    "nexus",
+    "b2b",
+    "microsoft-teams",
+    "knowledge-platform"
+  ],
+  "author": "Nexus Team",
+  "license": "MIT"
+}
